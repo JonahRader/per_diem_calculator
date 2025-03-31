@@ -3,7 +3,7 @@ import chcLogo from "./chc-logo.png";
 
 const PerDiemCalculator = () => {
   const [jobLocation, setJobLocation] = useState({ city: "", state: "", zip: "" });
-  const [startDate, setStartDate] = useState(""); // Stores the date as a string
+  const [startDate, setStartDate] = useState(""); // Stores the date as a string (month/year format)
   const [currentRate, setCurrentRate] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -19,10 +19,9 @@ const PerDiemCalculator = () => {
       return;
     }
 
-    // Parse the start date and extract month and year
-    const dateObj = new Date(startDate);
-    const month = monthNames[dateObj.getMonth()]; // Get the abbreviated month name (Jan, Feb, etc.)
-    const year = dateObj.getFullYear(); // Extract the year from the start date
+    // Extract month and year from the startDate
+    const [month, year] = startDate.split("-"); // Extract month and year from the string "MM-YYYY"
+    const monthName = monthNames[parseInt(month, 10) - 1]; // Get the abbreviated month name (Jan, Feb, etc.)
 
     setLoading(true);
     setError(null);
@@ -30,9 +29,9 @@ const PerDiemCalculator = () => {
 
     let proxyUrl = "";
     if (jobLocation.zip) {
-      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${monthName}`;
     } else if (jobLocation.city && jobLocation.state) {
-      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${monthName}`;
     } else {
       setError("Please provide either a ZIP code or both city and state.");
       setLoading(false);
@@ -42,21 +41,20 @@ const PerDiemCalculator = () => {
     try {
       const response = await fetch(proxyUrl);
       const result = await response.json();
-      console.log("API Response:", result); // Debugging API response
       const rates = result?.rates;
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
         // Extract matching rate for the selected month
         const matchedRate = rates[0]?.rate?.find((rate) => {
-          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === month);
+          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === monthName);
           return monthMatch;
         });
 
         if (matchedRate) {
           setCurrentRate(matchedRate);
         } else {
-          setError(`No data found for the selected month (${month}).`);
+          setError(`No data found for the selected month (${monthName}).`);
         }
       }
     } catch (err) {
@@ -107,9 +105,9 @@ const PerDiemCalculator = () => {
           />
         </div>
         <div>
-          <label>Start Date</label>
+          <label>Start Date (MM/YYYY)</label>
           <input
-            type="date"
+            type="month"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
