@@ -42,6 +42,7 @@ const PerDiemCalculator = () => {
     try {
       const response = await fetch(proxyUrl);
       const result = await response.json();
+      console.log("API Response:", result); // Debugging API response
       const rates = result?.rates;
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
