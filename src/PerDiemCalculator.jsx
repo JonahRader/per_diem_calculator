@@ -3,7 +3,7 @@ import chcLogo from "./chc-logo.png";
 
 const PerDiemCalculator = () => {
   const [jobLocation, setJobLocation] = useState({ city: "", state: "", zip: "" });
-  const [startDate, setStartDate] = useState(""); // Stores the date as a string
+  const [startDate, setStartDate] = useState(""); // Stores the month/year as a string (mm/yyyy)
   const [currentRate, setCurrentRate] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,9 +21,8 @@ const PerDiemCalculator = () => {
     }
 
     // Parse the start date to extract month and year
-    const dateObj = new Date(startDate);
-    const month = monthNames[dateObj.getMonth()]; // Get the abbreviated month name (Jan, Feb, etc.)
-    const year = dateObj.getFullYear(); // Extract the year from the start date as a number
+    const [monthString, year] = startDate.split("-");
+    const month = monthNames[parseInt(monthString, 10) - 1]; // Convert "01" to "Jan", "02" to "Feb", etc.
 
     setLoading(true);
     setError(null);
@@ -107,7 +106,7 @@ const PerDiemCalculator = () => {
           />
         </div>
         <div>
-          <label>Start Date</label>
+          <label>Start Date (Month/Year)</label>
           <input
             type="month"
             value={startDate}
@@ -151,4 +150,3 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
-
