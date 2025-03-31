@@ -17,7 +17,6 @@ const PerDiemCalculator = () => {
 
     // Parse the start date and extract month and year
     const dateObj = new Date(startDate);
-    const monthIndex = dateObj.getMonth(); // Index of the month (0 = January, 1 = February, etc.)
     const monthName = dateObj.toLocaleString('default', { month: 'short' }); // Get short month name (Jan, Feb, etc.)
     const year = dateObj.getFullYear(); // Extract the year from the start date
 
@@ -40,6 +39,7 @@ const PerDiemCalculator = () => {
       const response = await fetch(proxyUrl);
       const result = await response.json();
       const rates = result?.rates;
+
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
@@ -52,7 +52,7 @@ const PerDiemCalculator = () => {
         if (matchedRate) {
           setCurrentRate(matchedRate);
         } else {
-          setError(`No data found for the selected month (${monthName}).`);
+          setError(`No data found for the selected month.`);
         }
       }
     } catch (err) {
@@ -129,7 +129,7 @@ const PerDiemCalculator = () => {
           }}
         >
           <p>
-            <strong>For Month {currentRate.month}:</strong>
+            <strong>For Month {monthName}:</strong>
           </p>
           <p>🏠 Housing (Daily): {formatCurrency(currentRate.value)}</p>
           <p>🍽️ M&IE (Daily): {formatCurrency(currentRate.meals)}</p>
