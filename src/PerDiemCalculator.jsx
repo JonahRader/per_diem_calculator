@@ -3,11 +3,12 @@ import chcLogo from "./chc-logo.png";
 
 const PerDiemCalculator = () => {
   const [jobLocation, setJobLocation] = useState({ city: "", state: "", zip: "" });
-  const [startDate, setStartDate] = useState(""); // Stores the date as a string (month/year format)
+  const [startDate, setStartDate] = useState(""); // Stores the date as a string
   const [currentRate, setCurrentRate] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // This will hold month names as strings (short format, Jan, Feb, etc.)
   const monthNames = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
@@ -19,9 +20,10 @@ const PerDiemCalculator = () => {
       return;
     }
 
-    // Extract month and year from the startDate
-    const [month, year] = startDate.split("-"); // Extract month and year from the string "MM-YYYY"
-    const monthName = monthNames[parseInt(month, 10) - 1]; // Get the abbreviated month name (Jan, Feb, etc.)
+    // Parse the start date to extract month and year
+    const dateObj = new Date(startDate);
+    const month = monthNames[dateObj.getMonth()]; // Get the abbreviated month name (Jan, Feb, etc.)
+    const year = dateObj.getFullYear(); // Extract the year from the start date as a number
 
     setLoading(true);
     setError(null);
@@ -29,9 +31,9 @@ const PerDiemCalculator = () => {
 
     let proxyUrl = "";
     if (jobLocation.zip) {
-      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${monthName}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${month}`;
     } else if (jobLocation.city && jobLocation.state) {
-      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${monthName}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${month}`;
     } else {
       setError("Please provide either a ZIP code or both city and state.");
       setLoading(false);
@@ -47,14 +49,14 @@ const PerDiemCalculator = () => {
       } else {
         // Extract matching rate for the selected month
         const matchedRate = rates[0]?.rate?.find((rate) => {
-          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === monthName);
+          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === month);
           return monthMatch;
         });
 
         if (matchedRate) {
           setCurrentRate(matchedRate);
         } else {
-          setError(`No data found for the selected month (${monthName}).`);
+          setError(`No data found for the selected month (${month}).`);
         }
       }
     } catch (err) {
@@ -105,7 +107,7 @@ const PerDiemCalculator = () => {
           />
         </div>
         <div>
-          <label>Start Date (MM/YYYY)</label>
+          <label>Start Date</label>
           <input
             type="month"
             value={startDate}
@@ -149,3 +151,4 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
+
