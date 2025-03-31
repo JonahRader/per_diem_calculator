@@ -17,8 +17,13 @@ const PerDiemCalculator = () => {
 
     // Parse the start date and extract month and year
     const dateObj = new Date(startDate);
-    const month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
+    let month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
     const year = dateObj.getFullYear();
+
+    // Ensure month is in 2-digit format
+    if (month < 10) {
+      month = `0${month}`; // Add leading zero for single digit months
+    }
 
     setLoading(true);
     setError(null);
@@ -44,7 +49,7 @@ const PerDiemCalculator = () => {
       } else {
         // Assuming the API returns an array with one object per month,
         // you can select the matching rate directly.
-        const matchingRate = rates.find((rate) => parseInt(rate.month) === month);
+        const matchingRate = rates.find((rate) => parseInt(rate.month) === parseInt(month));
         if (!matchingRate) {
           setError(`No data found for the selected month (${month}).`);
         } else {
@@ -142,4 +147,5 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
+
 
