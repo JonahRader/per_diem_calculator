@@ -17,13 +17,9 @@ const PerDiemCalculator = () => {
 
     // Parse the start date and extract month and year
     const dateObj = new Date(startDate);
-    let month = dateObj.getMonth() + 1; // JavaScript months are 0-indexed
-    const year = dateObj.getFullYear();
-
-    // Ensure month is in 2-digit format
-    if (month < 10) {
-      month = `0${month}`; // Add leading zero for single digit months
-    }
+    const monthIndex = dateObj.getMonth(); // Index of the month (0 = January, 1 = February, etc.)
+    const monthName = dateObj.toLocaleString('default', { month: 'short' }); // Get short month name (Jan, Feb, etc.)
+    const year = dateObj.getFullYear(); // Extract the year from the start date
 
     setLoading(true);
     setError(null);
@@ -31,9 +27,9 @@ const PerDiemCalculator = () => {
 
     let proxyUrl = "";
     if (jobLocation.zip) {
-      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${monthName}`;
     } else if (jobLocation.city && jobLocation.state) {
-      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${monthName}`;
     } else {
       setError("Please provide either a ZIP code or both city and state.");
       setLoading(false);
@@ -47,19 +43,23 @@ const PerDiemCalculator = () => {
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
-        // Assuming the API returns an array with one object per month,
-        // you can select the matching rate directly.
-        const matchingRate = rates.find((rate) => parseInt(rate.month) === parseInt(month));
-        if (!matchingRate) {
-          setError(`No data found for the selected month (${month}).`);
+        // Extract matching rate for the selected month
+        const matchedRate = rates[0]?.rate?.find((rate) => {
+          const monthMatch = rate.months.month.find((month) => month.short === monthName);
+          return monthMatch;
+        });
+
+        if (matchedRate) {
+          setCurrentRate(matchedRate);
         } else {
-          setCurrentRate(matchingRate);
+          setError(`No data found for the selected month (${monthName}).`);
         }
       }
     } catch (err) {
       console.error(err);
       setError("Failed to fetch data.");
     }
+
     setLoading(false);
   };
 
@@ -147,5 +147,6 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
+
 
 
