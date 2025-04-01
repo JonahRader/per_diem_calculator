@@ -3,7 +3,8 @@ import chcLogo from "./chc-logo.png";
 
 const PerDiemCalculator = () => {
   const [jobLocation, setJobLocation] = useState({ city: "", state: "", zip: "" });
-  const [startDate, setStartDate] = useState(""); // Stores the date as a string
+  const [month, setMonth] = useState(""); // Stores the selected month
+  const [year, setYear] = useState(""); // Stores the selected year
   const [currentRate, setCurrentRate] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -13,24 +14,15 @@ const PerDiemCalculator = () => {
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
   ];
 
-  // Function to format the currency
-  const formatCurrency = (value) => {
-    if (isNaN(value)) return "$0.00";  // Handle any invalid value
-    return `$${parseFloat(value).toFixed(2)}`;
-  };
-
-  // Function to fetch per diem rates
   const fetchCurrentRates = async () => {
-    // Ensure a start date is provided
-    if (!startDate) {
-      setError("Please provide a start date.");
+    // Ensure a start date (month and year) is provided
+    if (!month || !year) {
+      setError("Please provide both a month and year.");
       return;
     }
 
-    // Parse the start date to extract month and year
-    const dateObj = new Date(startDate);
-    const month = monthNames[dateObj.getMonth()]; // Get the abbreviated month name (Jan, Feb, etc.)
-    const year = dateObj.getFullYear(); // Extract the year from the start date as a number
+    // Ensure month is a valid number (1-12)
+    const monthNumber = monthNames.indexOf(month) + 1; // Convert to 1-12 (January = 1)
 
     setLoading(true);
     setError(null);
@@ -38,9 +30,9 @@ const PerDiemCalculator = () => {
 
     let proxyUrl = "";
     if (jobLocation.zip) {
-      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${monthNumber}`;
     } else if (jobLocation.city && jobLocation.state) {
-      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${monthNumber}`;
     } else {
       setError("Please provide either a ZIP code or both city and state.");
       setLoading(false);
@@ -51,13 +43,13 @@ const PerDiemCalculator = () => {
       const response = await fetch(proxyUrl);
       const result = await response.json();
       const rates = result?.rates;
-
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
         // Extract matching rate for the selected month
         const matchedRate = rates[0]?.rate?.find((rate) => {
-          return rate.months.month.some((monthObj) => monthObj.short === month);
+          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === month);
+          return monthMatch;
         });
 
         if (matchedRate) {
@@ -73,6 +65,8 @@ const PerDiemCalculator = () => {
 
     setLoading(false);
   };
+
+  const formatCurrency = (value) => `$${parseFloat(value).toFixed(2)}`;
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", fontFamily: "Arial, sans-serif" }}>
@@ -115,20 +109,26 @@ const PerDiemCalculator = () => {
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <div style={{ width: "48%" }}>
             <label>Month</label>
-            <input
-              type="month"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+            <select
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
               style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
-            />
+            >
+              <option value="">Select Month</option>
+              {monthNames.map((monthName, index) => (
+                <option key={index} value={monthName}>
+                  {monthName}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div style={{ width: "48%" }}>
             <label>Year</label>
             <input
-              type="text"
-              value={new Date(startDate).getFullYear()}
-              onChange={(e) => setStartDate(`${new Date().getMonth() + 1}-${e.target.value}`)}
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
               style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
             />
           </div>
@@ -151,14 +151,14 @@ const PerDiemCalculator = () => {
           }}
         >
           <p>
-            <strong>For Month {startDate.substring(5, 7)} ({startDate.substring(0, 4)}):</strong>
+            <strong>For Month {month} {year}:</strong>
           </p>
-          <p>🏠 Housing (Daily): {formatCurrency(currentRate.value)}</p>
+          <p>🏠 Housing (Daily): {formatCurrency(currentRate.number)}</p>
           <p>🍽️ M&IE (Daily): {formatCurrency(currentRate.meals)}</p>
           <p>
             💰 Total Weekly:{" "}
             {formatCurrency(
-              (parseFloat(currentRate.value) + parseFloat(currentRate.meals)) * 7
+              (parseFloat(currentRate.number) + parseFloat(currentRate.meals)) * 7
             )}
           </p>
         </div>
@@ -169,4 +169,3 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
-
