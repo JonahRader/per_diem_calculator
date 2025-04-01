@@ -153,12 +153,13 @@ const PerDiemCalculator = () => {
           <p>
             <strong>For Month {month} {year}:</strong>
           </p>
-          <p>🏠 Housing (Daily): {formatCurrency(currentRate.number)}</p>
+          {/* Use dynamic month-based reference */}
+          <p>🏠 Housing (Daily): {formatCurrency(currentRate[month])}</p> 
           <p>🍽️ M&IE (Daily): {formatCurrency(currentRate.meals)}</p>
           <p>
             💰 Total Weekly:{" "}
             {formatCurrency(
-              (parseFloat(currentRate.number) + parseFloat(currentRate.meals)) * 7
+              (parseFloat(currentRate[month]) + parseFloat(currentRate.meals)) * 7
             )}
           </p>
         </div>
@@ -169,3 +170,4 @@ const PerDiemCalculator = () => {
 };
 
 export default PerDiemCalculator;
+
