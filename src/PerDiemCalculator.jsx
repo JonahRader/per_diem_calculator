@@ -3,7 +3,8 @@ import chcLogo from "./chc-logo.png";
 
 const PerDiemCalculator = () => {
   const [jobLocation, setJobLocation] = useState({ city: "", state: "", zip: "" });
-  const [startDate, setStartDate] = useState(""); // Stores the date as a string
+  const [month, setMonth] = useState(""); // Stores the selected month
+  const [year, setYear] = useState(""); // Stores the selected year
   const [currentRate, setCurrentRate] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,16 +15,14 @@ const PerDiemCalculator = () => {
   ];
 
   const fetchCurrentRates = async () => {
-    // Ensure a start date is provided
-    if (!startDate) {
-      setError("Please provide a start date.");
+    // Ensure a start date (month and year) is provided
+    if (!month || !year) {
+      setError("Please provide both a month and year.");
       return;
     }
 
-    // Parse the start date to extract month and year (MM/YYYY format)
-    const dateObj = new Date(`${startDate}-01`);  // Ensure correct parsing of the date
-    const month = monthNames[dateObj.getMonth()]; // Get the abbreviated month name (Jan, Feb, etc.)
-    const year = dateObj.getFullYear(); // Extract the year from the start date as a number
+    // Ensure month is a valid number (1-12)
+    const monthNumber = monthNames.indexOf(month) + 1; // Convert to 1-12 (January = 1)
 
     setLoading(true);
     setError(null);
@@ -31,9 +30,9 @@ const PerDiemCalculator = () => {
 
     let proxyUrl = "";
     if (jobLocation.zip) {
-      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?zip=${jobLocation.zip}&year=${year}&month=${monthNumber}`;
     } else if (jobLocation.city && jobLocation.state) {
-      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${month}`;
+      proxyUrl = `/.netlify/functions/gsaProxy?city=${jobLocation.city}&state=${jobLocation.state}&year=${year}&month=${monthNumber}`;
     } else {
       setError("Please provide either a ZIP code or both city and state.");
       setLoading(false);
@@ -106,14 +105,33 @@ const PerDiemCalculator = () => {
             style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
           />
         </div>
-        <div>
-          <label>Start Date (Month/Year)</label>
-          <input
-            type="month"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
-          />
+
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ width: "48%" }}>
+            <label>Month</label>
+            <select
+              value={month}
+              onChange={(e) => setMonth(e.target.value)}
+              style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
+            >
+              <option value="">Select Month</option>
+              {monthNames.map((monthName, index) => (
+                <option key={index} value={monthName}>
+                  {monthName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ width: "48%" }}>
+            <label>Year</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              style={{ width: "100%", padding: "8px", marginBottom: "10px" }}
+            />
+          </div>
         </div>
       </div>
 
