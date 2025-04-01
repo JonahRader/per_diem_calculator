@@ -153,21 +153,20 @@ const PerDiemCalculator = () => {
           <p>
             <strong>For Month {month} {year}:</strong>
           </p>
-     <p>🏠 Housing (Daily): { 
-            currentRate && currentRate.rate && currentRate.rate[0] && currentRate.rate[0].months 
-            ? formatCurrency(currentRate.rate[0].months.month.find(m => m.short === month)?.value) 
-            : formatCurrency(currentRate?.rate[0]?.standardRate) // fallback to standardRate
-          }</p>
+          <p>🏠 Housing (Daily): {formatCurrency(currentRate?.rate[0]?.months?.month?.find(m => m.short === month)?.value || currentRate?.rate[0]?.standardRate)}</p>
           <p>🍽️ M&IE (Daily): {formatCurrency(currentRate?.meals)}</p>
           <p>
             💰 Total Weekly:{" "}
             {formatCurrency(
-              (parseFloat(currentRate?.rate[0]?.months?.month?.find(m => m.short === month)?.value) || 0) + parseFloat(currentRate?.meals) * 7
+              (parseFloat(currentRate?.rate[0]?.months?.month?.find(m => m.short === month)?.value || currentRate?.rate[0]?.standardRate) + parseFloat(currentRate?.meals)) * 7
             )}
           </p>
         </div>
       )}
-
+      {error && <p style={{ color: "red", marginTop: "20px" }}>{error}</p>}
+    </div>
+  );
+};
 
 export default PerDiemCalculator;
 
