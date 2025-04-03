@@ -43,6 +43,8 @@ const PerDiemCalculator = () => {
       const response = await fetch(proxyUrl);
       const result = await response.json();
       const rates = result?.rates;
+      console.log('GSA API Response:', result);
+      console.log('Extracted rates:', rates);
       if (!rates || rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
@@ -53,7 +55,11 @@ const PerDiemCalculator = () => {
         });
 
         if (matchedRate) {
-          setCurrentRate(matchedRate);
+          const monthData = matchedRate.months.month.find((m) => m.short === month);
+          setCurrentRate({
+            lodging: monthData?.value || matchedRate.rate || 0,
+            meals: rates[0]?.meals || 0
+          });
         } else {
           setError(`No data found for the selected month (${month}).`);
         }
@@ -153,12 +159,12 @@ const PerDiemCalculator = () => {
           <p>
             <strong>For Month {month} {year}:</strong>
           </p>
-          <p>🏠 Housing (Daily): {formatCurrency(currentRate?.rate[0]?.months?.month?.find(m => m.short === month)?.value || currentRate?.rate[0]?.standardRate)}</p>
+          <p>🏠 Housing (Daily): {formatCurrency(currentRate?.lodging)}</p>
           <p>🍽️ M&IE (Daily): {formatCurrency(currentRate?.meals)}</p>
           <p>
             💰 Total Weekly:{" "}
             {formatCurrency(
-              (parseFloat(currentRate?.rate[0]?.months?.month?.find(m => m.short === month)?.value || currentRate?.rate[0]?.standardRate) + parseFloat(currentRate?.meals)) * 7
+              (parseFloat(currentRate?.lodging || 0) + parseFloat(currentRate?.meals || 0)) * 7
             )}
           </p>
         </div>
