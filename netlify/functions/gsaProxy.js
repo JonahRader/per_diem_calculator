@@ -24,12 +24,13 @@ exports.handler = async function(event, context) {
     // Parse the response JSON
     const data = await response.json();
 
+    // Log the full response for debugging
+    console.log('Full GSA API Response:', data);
+
     // Return the data in a properly formatted JSON response
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        rates: data.rates // Assuming the 'rates' field contains the necessary information
-      }),
+      body: JSON.stringify(data),  // Return the complete data object
     };
   } catch (error) {
     console.error("Error fetching data:", error);

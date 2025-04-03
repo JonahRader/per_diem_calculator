@@ -42,15 +42,15 @@ const PerDiemCalculator = () => {
     try {
       const response = await fetch(proxyUrl);
       const result = await response.json();
-      const rates = result?.rates;
-      console.log('GSA API Response:', result);
-      console.log('Extracted rates:', rates);
-      if (!rates || rates.length === 0) {
+      console.log('Full API Response:', result);
+      
+      if (!result || !result.rates || result.rates.length === 0) {
         setError("No data found for this location/year.");
       } else {
+        const rate = result.rates[0];
         // Extract matching rate for the selected month
-        const matchedRate = rates[0]?.rate?.find((rate) => {
-          const monthMatch = rate.months.month.find((monthObj) => monthObj.short === month);
+        const matchedRate = rate.rate.find((r) => {
+          const monthMatch = r.months.month.find((monthObj) => monthObj.short === month);
           return monthMatch;
         });
 
@@ -58,13 +58,14 @@ const PerDiemCalculator = () => {
           const monthData = matchedRate.months.month.find((m) => m.short === month);
           setCurrentRate({
             lodging: monthData?.value || matchedRate.rate || 0,
-            meals: rates[0]?.mie || rates[0]?.meals || 0  // Try both mie and meals fields
+            meals: rate.meals || 0  // M&IE rate is directly on the rate object
           });
           
           // Add more detailed logging
+          console.log('Rate object:', rate);
           console.log('Month data:', monthData);
           console.log('Matched rate:', matchedRate);
-          console.log('M&IE rate:', rates[0]?.mie || rates[0]?.meals);
+          console.log('M&IE rate:', rate.meals);
         } else {
           setError(`No data found for the selected month (${month}).`);
         }
