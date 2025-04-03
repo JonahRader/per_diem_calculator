@@ -58,14 +58,14 @@ const PerDiemCalculator = () => {
           const monthData = matchedRate.months.month.find((m) => m.short === month);
           setCurrentRate({
             lodging: monthData?.value || matchedRate.rate || 0,
-            meals: rate.meals || 0  // M&IE rate is directly on the rate object
+            meals: matchedRate.mie || matchedRate.meals || 0  // Try to get M&IE from the matched rate
           });
           
           // Add more detailed logging
           console.log('Rate object:', rate);
           console.log('Month data:', monthData);
           console.log('Matched rate:', matchedRate);
-          console.log('M&IE rate:', rate.meals);
+          console.log('M&IE rate:', matchedRate.mie || matchedRate.meals);
         } else {
           setError(`No data found for the selected month (${month}).`);
         }

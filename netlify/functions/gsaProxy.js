@@ -25,11 +25,21 @@ exports.handler = async function(event, context) {
     const data = await response.json();
 
     // Log the full response for debugging
-    console.log('Full GSA API Response:', data);
+    console.log('Full GSA API Response:', JSON.stringify(data, null, 2));
+    console.log('Response structure:', {
+      hasRates: !!data.rates,
+      ratesLength: data.rates?.length,
+      firstRate: data.rates?.[0],
+      mieValue: data.rates?.[0]?.rate?.[0]?.mie,
+      mealsValue: data.rates?.[0]?.rate?.[0]?.meals
+    });
 
     // Return the data in a properly formatted JSON response
     return {
       statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(data),  // Return the complete data object
     };
   } catch (error) {
